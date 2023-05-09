@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--
+  ~
+  ~ logback的通用日志配置，可以动态管理logback日志。包含控制台输出设置、控制台彩色输出设置
+  ~ 日志分割、日志滚动记录、日志归档、多JVM同时操作日志等
+  ~
+  -->
+
+<included>
+
+    <define name="home.dir" class="org.quicksand.filesystem.HomeDirectoryPropertyDefiner" scope="context" />
+    <define name="log.dir" class="org.quicksand.filesystem.LogDirectoryPropertyDefiner" scope="context"/>
+
+    <!-- 设置变量 -->
+    <property name="Logback_Name" value="logback"/>
+    <!-- 设置上下文名称 -->
+    <contextName>${Logback_Name}</contextName>
+
+    <!-- 动态日志级别 -->
+    <jmxConfigurator/>
+
+
+    <!-- 设置logback控制台输出为Spring Boot样式的彩色日志 -->
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+    <!-- 彩色日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!-- Console 输出设置 -->
+    <appender name="COLOURSTDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 默认控制台输出配置 -->
+    <appender name="DEFAULTSTDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level --- [%thread] %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+
+    <!-- 支持多JVM同时操作同一个日志文件，但性能会产生一定的影响 -->
+    <appender name="MOREJVMFILE" class= "ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 支持多JVM同时操作同一个日志文件 -->
+        <prudent>true</prudent>
+        <!-- 按天来回滚，如果需要按小时来回滚，则设置为{yyyy-MM-dd_HH} -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy" >
+            <fileNamePattern>${log.dir}/quicksand-%d.log</fileNamePattern>
+            <!-- 如果按天来回滚，则最大保存时间为30天，30天之前的都将被清理掉 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <!-- 如果超过指定大小会告知RollingFileAppender 触发当前活动文件滚动，默认值是10MB -->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>300MB</maxFileSize>
+        </triggeringPolicy>
+        <!-- 日志输出格式 -->
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS,GMT+8} %-5level --- [%thread] %logger{36} - %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <!-- 不支持多JVM同时操作，可以使用file和压缩日志 -->
+    <appender name="DEFAULTFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 被写入的文件名 -->
+        <file>${log.dir}/quicksand.log</file>
+        <!-- 追加到文件结尾 -->
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS,GMT+8} %-5level --- [%thread] %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.dir}/quicksand-%d.log.gz</fileNamePattern>
+            <maxHistory>31</maxHistory>
+        </rollingPolicy>
+
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>30MB</maxFileSize>
+        </triggeringPolicy>
+    </appender>
+
+    <!-- 异步记录日志 -->
+    <appender name ="ASYNCMOREJVMFILE" class= "ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold >0</discardingThreshold>
+        <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+        <queueSize>512</queueSize>
+        <!--
+            添加附加的appender,最多只能添加一个
+            注意： 使用异步记录日志必须先加载输出日志，再加载异步，
+            也就是日志输出要放在异步的上面
+         -->
+        <appender-ref ref ="MOREJVMFILE"/>
+    </appender>
+
+</included>

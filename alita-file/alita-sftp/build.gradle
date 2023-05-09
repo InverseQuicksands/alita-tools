@@ -1,0 +1,7 @@
+dependencies {
+    implementation 'com.jcraft:jsch:0.1.55'
+//    implementation 'com.alipay.rdf.file:rdf-file-sftp:2.2.10'
+//    implementation 'com.alipay.rdf.file:rdf-file-oss:2.2.10'
+//    implementation 'com.alipay.rdf.file:rdf-file-core:2.2.10'
+}
+

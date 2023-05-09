@@ -1,0 +1,14 @@
+dependencies {
+    implementation project(":alita-job:alita-xl-job:alita-xl-job-handler")
+    implementation ('org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2') {
+        exclude group:'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation ('org.springframework.boot:spring-boot-starter-jdbc') {
+        exclude group:'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation ('org.springframework.boot:spring-boot-starter-web') {
+        exclude group:'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation "org.springframework.boot:spring-boot-configuration-processor"
+    implementation 'org.postgresql:postgresql:42.2.26'
+}

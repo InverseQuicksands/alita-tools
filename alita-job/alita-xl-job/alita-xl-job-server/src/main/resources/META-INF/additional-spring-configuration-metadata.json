@@ -1,0 +1,35 @@
+{
+  "groups": [],
+  "properties": [
+    {
+      "name": "job.accessToken",
+      "description": "Security check of dispatch center and executor.",
+      "defaultValue": "",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "job.i18n",
+      "description": "globalization",
+      "defaultValue": "zh_CN",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "job.triggerpool.fast.max",
+      "description": "triggerpool.fast.max",
+      "defaultValue": 200,
+      "type": "java.lang.Integer"
+    },
+    {
+      "name": "job.triggerpool.slow.max",
+      "description": "triggerpool.slow.ma",
+      "defaultValue": 100,
+      "type": "java.lang.Integer"
+    },
+    {
+      "name": "job.logretentiondays",
+      "description": "log retention days",
+      "defaultValue": 30,
+      "type": "java.lang.Integer"
+    }
+  ]
+}
