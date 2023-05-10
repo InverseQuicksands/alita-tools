@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.alita.framework.job.repository.JobLogMapper">
+
+    <resultMap id="JobLog" type="com.alita.framework.job.model.JobLog" >
+        <id column="id" property="id" />
+
+        <result column="job_group" property="jobGroup" />
+        <result column="job_id" property="jobId" />
+
+        <result column="executor_address" property="executorAddress" />
+        <result column="executor_handler" property="executorHandler" />
+        <result column="executor_param" property="executorParam" />
+        <result column="executor_sharding_param" property="executorShardingParam" />
+        <result column="executor_fail_retry_count" property="executorFailRetryCount" />
+
+        <result column="trigger_time" property="triggerTime" />
+        <result column="trigger_code" property="triggerCode" />
+        <result column="trigger_msg" property="triggerMsg" />
+
+        <result column="handle_time" property="handleTime" />
+        <result column="handle_code" property="handleCode" />
+        <result column="handle_msg" property="handleMsg" />
+
+        <result column="alarm_status" property="alarmStatus" />
+    </resultMap>
+
+    <!-- 获取失败 job 日志主键 -->
+    <select id="findFailJobLogIds" resultType="java.lang.String" >
+        SELECT id FROM job_log
+        WHERE (trigger_code = '0' and handle_code = '00000000') OR (handle_code = '00000000')
+        AND alarm_status = '0'
+        ORDER BY id ASC
+        LIMIT #{pagesize}
+    </select>
+
+    <!-- 修改告警状态 -->
+    <update id="updateAlarmStatus">
+        UPDATE job_log
+        SET alarm_status = #{newAlarmStatus}
+        WHERE id = #{failJobLogId} AND alarm_status = #{oldAlarmStatus}
+    </update>
+
+    <!-- 通过主键查询指定 job log -->
+    <select id="queryById" resultMap="JobLog">
+        select t.id, t.job_group, t.job_id, t.executor_address,
+               t.executor_handler, t.executor_param,
+               t.executor_sharding_param, t.executor_fail_retry_count,
+               t.trigger_time, t.trigger_code,
+               t.trigger_msg, t.handle_time, t.handle_code,
+               t.handle_msg, t.alarm_status
+        from job_log as t where t.id = #{id}
+    </select>
+
+    <insert id="save" parameterType="com.alita.framework.job.model.JobLog">
+        INSERT INTO job_log (id, job_group, job_id, executor_address, executor_handler, executor_param, executor_sharding_param,
+                             executor_fail_retry_count, trigger_time, trigger_code, trigger_msg, handle_time, handle_code,
+                             handle_msg, alarm_status)
+        VALUES (#{id}, #{jobGroup}, #{jobId}, #{executorAddress}, #{executorHandler}, #{executorParam}, #{executorShardingParam},
+                #{executorFailRetryCount}, #{triggerTime}, #{triggerCode}, #{triggerMsg}, #{handleTime}, #{handleCode},
+                #{handleMsg}, #{alarmStatus});
+    </insert>
+
+
+    <!-- 修改 -->
+    <update id="updateTriggerInfo" parameterType="com.alita.framework.job.model.JobLog">
+        UPDATE job_log
+        SET job_group = #{jobGroup},
+            job_id = #{jobId},
+            trigger_time = #{triggerTime},
+            trigger_code = #{triggerCode},
+            trigger_msg = #{triggerMsg},
+            executor_address = #{executorAddress},
+            executor_handler = #{executorHandler},
+            executor_param = #{executorParam},
+            executor_sharding_param = #{executorShardingParam},
+            executor_fail_retry_count = #{executorFailRetryCount},
+            handle_time = #{handleTime},
+            handle_code = #{handleCode},
+            handle_msg = #{handleMsg},
+            alarm_status = #{alarmStatus}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询【调度记录停留在 "运行中" 状态超过10min，且对应执行器心跳注册失败不在线】 -->
+    <select id="findLostJobIds" resultType="java.lang.String">
+        SELECT t.id FROM job_log t
+        LEFT JOIN job_registry t2 ON t.executor_address = t2.registry_value
+        WHERE t.trigger_code = 1
+          AND t.handle_code = '00000000'
+          AND t.trigger_time <![CDATA[ <= ]]> #{losedTime}
+          AND t2.id IS NULL
+    </select>
+
+    <!-- 修改 joblog 信息 -->
+    <update id="updateHandleInfo" parameterType="com.alita.framework.job.model.JobLog">
+        UPDATE job_log
+        SET handle_time = #{handleTime},
+            handle_code = #{handleCode},
+            handle_msg = #{handleMsg}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findLogReport" resultType="java.util.Map" >
+        SELECT
+            COUNT(handle_code) triggerDayCount,
+            SUM(CASE WHEN (trigger_code = 1 and handle_code = '00000000') then 1 else 0 end) as triggerDayCountRunning,
+            SUM(CASE WHEN handle_code = '00000000' then 1 else 0 end) as triggerDayCountSuc
+        FROM job_log
+        WHERE trigger_time BETWEEN #{from} and #{to}
+    </select>
+
+    <select id="findClearLogIds" resultType="java.lang.String" >
+        SELECT id FROM job_log
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="jobGroup gt 0">
+                AND job_group = #{jobGroup}
+            </if>
+            <if test="jobId gt 0">
+                AND job_id = #{jobId}
+            </if>
+            <if test="clearBeforeTime != null">
+                AND trigger_time <![CDATA[ <= ]]> #{clearBeforeTime}
+            </if>
+            <if test="clearBeforeNum gt 0">
+                AND id NOT in(
+                    SELECT id FROM(
+                        SELECT id FROM job_log AS t
+                        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+                            <if test="jobGroup gt 0">
+                                AND t.job_group = #{jobGroup}
+                            </if>
+                            <if test="jobId gt 0">
+                                AND t.job_id = #{jobId}
+                            </if>
+                        </trim>
+                        ORDER BY t.trigger_time desc
+                        offset 0 LIMIT #{clearBeforeNum}
+                    ) t1
+                )
+            </if>
+        </trim>
+        order by id asc
+        OFFSET 0 LIMIT #{pagesize}
+    </select>
+
+    <delete id="clearLog" >
+        delete from job_log
+        WHERE id in
+        <foreach collection="logIds" item="item" open="(" close=")" separator="," >
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <select id="pageList" resultMap="JobLog">
+        select t.id, t.job_group, t.job_id, t.executor_address,
+               t.executor_handler, t.executor_param,
+               t.executor_sharding_param, t.executor_fail_retry_count,
+               t.trigger_time, t.trigger_code,
+               t.trigger_msg, t.handle_time, t.handle_code,
+               t.handle_msg, t.alarm_status
+        from job_log as t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="jobId==0 and jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+            <if test="jobId gt 0">
+                AND t.job_id = #{jobId}
+            </if>
+            <if test="triggerTimeStart != null">
+                AND t.trigger_time <![CDATA[ >= ]]> #{triggerTimeStart}
+            </if>
+            <if test="triggerTimeEnd != null">
+                AND t.trigger_time <![CDATA[ <= ]]> #{triggerTimeEnd}
+            </if>
+            <if test="logStatus == 1" >
+                AND t.handle_code = '00000000'
+            </if>
+            <if test="logStatus == 2" >
+                AND (
+                    t.trigger_code != 0 OR
+                    t.handle_code != '00000000'
+                )
+            </if>
+            <if test="logStatus == 3" >
+                AND t.trigger_code = 0
+                AND t.handle_code = '00000000'
+            </if>
+        </trim>
+        ORDER BY t.trigger_time DESC
+        offset #{offset}, LIMIT #{pagesize}
+    </select>
+
+
+    <select id="pageListCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM job_log AS t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="jobId==0 and jobGroup gt 0">
+                AND t.job_group = #{jobGroup}
+            </if>
+            <if test="jobId gt 0">
+                AND t.job_id = #{jobId}
+            </if>
+            <if test="triggerTimeStart != null">
+                AND t.trigger_time <![CDATA[ >= ]]> #{triggerTimeStart}
+            </if>
+            <if test="triggerTimeEnd != null">
+                AND t.trigger_time <![CDATA[ <= ]]> #{triggerTimeEnd}
+            </if>
+            <if test="logStatus == 1" >
+                AND t.handle_code = '00000000'
+            </if>
+            <if test="logStatus == 2" >
+                AND (
+                t.trigger_code != 0 OR
+                t.handle_code != '00000000'
+                )
+            </if>
+            <if test="logStatus == 3" >
+                AND t.trigger_code = 0
+                AND t.handle_code = '00000000'
+            </if>
+        </trim>
+    </select>
+
+</mapper>

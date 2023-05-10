@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.alita.framework.job.repository.JobGroupMapper">
+
+    <resultMap id="JobGroup" type="com.alita.framework.job.model.JobGroup" >
+        <id column="id" property="id" />
+        <result column="app_name" property="appName" />
+        <result column="title" property="title" />
+        <result column="address_type" property="addressType" />
+        <result column="address_list" property="addressList" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通过获取执行器地址类型查询所有job组信息 -->
+    <select id="findByAddressType" resultMap="JobGroup">
+        select t.id, t.app_name, t.title, t.address_type, t.address_list, t.update_time from job_group as t
+        WHERE t.address_type = #{addressType}
+        ORDER BY t.app_name, t.title, t.id ASC
+    </select>
+
+    <!-- 更新 JobGroup 表 -->
+    <update id="update" parameterType="com.alita.framework.job.model.JobGroup">
+        UPDATE job_group
+        SET app_name = #{appName}, title = #{title}, address_type = #{addressType},
+            address_list = #{addressList}, update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 新增 JobGroup 表 -->
+    <insert id="save" parameterType="com.alita.framework.job.model.JobGroup">
+        INSERT INTO job_group (id, app_name, title, address_type, address_list, update_time)
+        values (#{id}, #{appName}, #{title}, #{addressType}, #{addressList}, #{updateTime})
+    </insert>
+
+    <!-- 分页查询 jobGroup -->
+    <select id="pageList" resultMap="JobGroup">
+        select t.id, t.app_name, t.title, t.address_type, t.address_list, t.update_time from job_group as t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="appName != null and appName != ''">
+                AND t.app_name like CONCAT('%', #{appName}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND t.title like CONCAT('%', #{title}, '%')
+            </if>
+        </trim>
+        ORDER BY t.app_name, t.title, t.id ASC
+        OFFSET #{offset} LIMIT #{pagesize}
+    </select>
+
+    <!-- 统计数量 -->
+    <select id="pageListCount" resultType="java.lang.Integer">
+        select count(*) from job_group as t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="appName != null and appName != ''">
+                AND t.app_name like CONCAT('%', #{appName}, '%')
+            </if>
+            <if test="title != null and title != ''">
+                AND t.title like CONCAT('%', #{title}, '%')
+            </if>
+        </trim>
+    </select>
+
+    <!-- 查询所有数据 -->
+    <select id="findAll" resultMap="JobGroup">
+        SELECT  t.id, t.app_name, t.title, t.address_type, t.address_list, t.update_time from job_group as t
+        ORDER BY t.app_name, t.title, t.id ASC
+    </select>
+
+    <!-- 通过主键查询 -->
+    <select id="queryById" resultMap="JobGroup">
+        SELECT  t.id, t.app_name, t.title, t.address_type, t.address_list, t.update_time from job_group as t
+        WHERE t.id = #{id}
+    </select>
+
+    <!-- 删除数据 -->
+    <delete id="remove">
+        delete from job_group where id = #{id}
+    </delete>
+
+</mapper>

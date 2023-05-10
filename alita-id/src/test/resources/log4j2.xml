@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xi="http://www.w3.org/2001/XInclude" status="off" name="aeolus-logging" monitorInterval="6000">
+
+    <!--变量配置-->
+    <Properties>
+        <!-- 格式化输出：%d表示日期，%t表示线程名，%-5level：级别从左显示5个字符宽度 %msg：日志消息，%n是换行符-->
+        <property name="CONSOLE_LOG_PATTERN" value="%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint}  %clr{%-5level} %clr{${sys:PID}}{magenta} --- %clr{[ %t ]}{faint} %clr{%c}{cyan} %clr{:}{faint} %m%n" />
+        <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${sys:PID} --- [%t] %c : %m%n" />
+        <!-- 定义日志存储的路径，不要配置相对路径 -->
+        <property name="LOG_FILE_PATH" value="$${env:AEGIS_SDK}/logs/alita-tools/" />
+        <!-- 设置项目名称 -->
+        <property name="LOG_FILE_NAME" value="alita-id" />
+    </Properties>
+
+    <Appenders>
+
+        <!-- follow: 标识appender是否通过System.setOut或System.setErr在配置后进行重新分配System.out或System.err。
+        请注意，follow属性不能与Windows上的Jansi一起使用 -->
+        <Console name="STDOUT" target="SYSTEM_OUT" follow="true">
+            <!--输出日志的格式-->
+            <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}" charset="UTF-8"/>
+            <!--控制台只输出level及其以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+
+        <!--RollingRandomAccessFile性能比RollingFile提升官网宣称是20-200%-->
+        <RollingRandomAccessFile name="FILE" fileName="${sys:LOG_FILE_PATH}/${sys:LOG_FILE_NAME}.log"
+                                 filePattern="${sys:LOG_FILE_PATH}/${date:yyyy-MM-dd}/${sys:LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout charset="UTF-8" pattern="${sys:FILE_LOG_PATTERN}" />
+            <Policies>
+                <!-- 基于时间的滚动策略 -->
+                <TimeBasedTriggeringPolicy/>
+                <!-- 基于指定文件大小的滚动策略，size属性用来定义每个日志文件的大小 -->
+                <SizeBasedTriggeringPolicy size="500 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy:用来指定同一个文件夹下最多有几个(通过max属性定义)日志文件时开始删除最旧的，创建新的
+            如不设置，则默认为最多同一文件夹下7个文件开始覆盖-->
+            <DefaultRolloverStrategy max="30"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <!--Logger节点用来单独指定日志的形式，比如要为指定包下的class指定不同的日志级别等。-->
+    <!--然后定义loggers，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+        <root level="DEBUG" includeLocation="true">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <logger name="org.quicksand" level="DEBUG"/>
+
+        <logger name="org.caterpillar" level="DEBUG"/>
+
+        <logger name="org.springframework" level="DEBUG" />
+
+        <logger name="org.apache.commons" level="DEBUG" />
+
+        <logger name="java.sql.Connection" level="DEBUG" />
+
+        <logger name="java.sql.Statement" level="DEBUG" />
+
+        <logger name="java.sql.PreparedStatement" level="DEBUG" />
+
+        <logger name="java.sql.ResultSet" level="DEBUG" />
+
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
+
+        <logger name="org.springframework.context.annotation.ClassPathBeanDefinitionScanner" level="ERROR"/>
+
+        <logger name="com.netflix.discovery.provider" level="DEBUG" />
+
+        <logger name=" org.springframework.beans" level="ERROR"/>
+
+        <logger name="org.springframework.core.io" level="ERROR" />
+
+        <logger name="org.springframework.beans.factory" level="ERROR" />
+
+        <logger name="org.springframework.jdbc" level="ERROR" />
+
+        <logger name="org.springframework.jdbc.core.BeanPropertyRowMapper" level="ERROR" />
+
+        <logger name="org.springframework.boot.autoconfigure.logging" level="ERROR" />
+
+        <logger name="org.apache.dubbo.common.extension.AdaptiveClassCodeGenerator" level="ERROR" />
+
+        <logger name="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer" level="ERROR" />
+
+        <logger name="com.zaxxer.hikari.pool.HikariPool" level="ERROR" />
+
+        <logger name="org.springframework.data.convert.CustomConversions" level="ERROR" />
+
+        <logger name="org.springframework.core.env.PropertySourcesPropertyResolver" level="ERROR" />
+
+        <logger name="com.zaxxer.hikari.pool.PoolBase" level="ERROR" />
+
+        <logger name="_org.springframework.web.servlet.HandlerMapping.Mappings" level="ERROR" />
+
+        <logger name="com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.grpc.netty.NettyClientHandler" level="ERROR" />
+
+        <logger name="com.alibaba.nacos.shaded.io.grpc.netty.shaded.io.netty.util.internal.PlatformDependent0" level="ERROR" />
+
+        <logger name="com.alibaba.nacos.client.naming" level="ERROR" />
+
+
+    </loggers>
+
+</configuration>

@@ -1,0 +1,54 @@
+server:
+  port: 8100
+
+  servlet:
+    context-path: /tinyid
+
+spring:
+  application:
+    name: alita-id
+
+
+  # 数据库连接信息配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://101.200.167.19:3306/chldb?useUnicode=true&characterEncoding=UTF-8
+    username: aeolus
+    password: zhang232625
+    type: com.zaxxer.hikari.HikariDataSource
+    # hikari 连接池配置
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: Hikari-pool
+      max-lifetime: 180000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+
+  profiles:
+    active: dev
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: -1
+      max-request-size: -1
+      file-size-threshold: 0
+
+    lifecycle:
+      # 缓冲期结束前连接保持活动状态
+      timeout-per-shutdown-phase: 20s
+
+
+
+logging:
+  #配置使用的log4j2日志
+  config: classpath:log4j2.xml
+
+batch:
+  size:
+    max: 10000
+

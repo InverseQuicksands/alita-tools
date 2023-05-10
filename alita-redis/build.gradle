@@ -1,0 +1,7 @@
+
+dependencies {
+    implementation 'io.lettuce:lettuce-core:6.2.3.RELEASE'
+    implementation ('org.springframework.data:spring-data-redis:3.0.2') {
+        exclude group:'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+}
