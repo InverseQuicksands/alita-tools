@@ -1,0 +1,137 @@
+import java.text.SimpleDateFormat
+
+buildscript {
+    repositories {
+        maven { url "https://repo.spring.io/milestone" }
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath('io.spring.gradle:dependency-management-plugin:1.1.0')
+        classpath('org.springframework.boot:spring-boot-gradle-plugin:3.0.3')
+    }
+}
+
+configure(allprojects) { project ->
+    apply plugin: 'java-library'                                    //java插件
+    apply plugin: 'maven-publish'                                   //maven插件
+    apply plugin: 'idea'                                            //IDEA插件
+    apply plugin: 'org.springframework.boot'                        //spring boot插件
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+
+    group 'com.alita.framework'
+    version '1.0-SNAPSHOT'
+
+    //配置仓库
+    repositories {
+        maven { url "https://repo.spring.io/milestone" }
+        mavenCentral()
+    }
+
+    idea {
+        module {
+            downloadJavadoc = true;
+            downloadSources = true;
+        }
+    }
+
+    [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+    compileJava.options.compilerArgs += [
+            "--add-exports","java.base/sun.nio.ch=ALL-UNNAMED",
+            "--add-exports","java.base/jdk.internal.misc=ALL-UNNAMED",
+            "--add-exports","java.base/jdk.internal.vm.annotation=ALL-UNNAMED",
+            "--add-exports","java.base/sun.net=ALL-UNNAMED",
+            "--add-exports","java.base/sun.net.util=ALL-UNNAMED",
+            "--add-exports","java.base/sun.net.www=ALL-UNNAMED",
+            "--add-exports","java.base/jdk.internal.ref=ALL-UNNAMED"
+    ]
+
+    dependencies {
+        implementation(enforcedPlatform("com.alibaba.cloud:spring-cloud-alibaba-dependencies:2021.0.4.0"))
+        implementation(enforcedPlatform("org.springframework.cloud:spring-cloud-dependencies:2022.0.1"))
+    }
+
+    //在多模块下,授权打包依赖模块
+    jar {
+        enabled = true
+        archiveClassifier = ''
+        manifest {
+            attributes("Manifest-Version": "1.0")
+            attributes("Created-By": "Apache Gradle " + gradle.gradleVersion)
+            attributes("Implementation-Title": project.name)
+            attributes("Implementation-Version": project.version)
+            attributes("Build-Jdk": System.getProperty("java.version"))
+            attributes("Built-By": "alita")
+            attributes("Build-Date": (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(new Date()))
+        }
+    }
+
+    bootJar {
+        enabled = false
+    }
+}
+
+configure(subprojects) { project ->
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+        testImplementation 'org.mockito:mockito-junit-jupiter'
+        testImplementation 'org.mockito:mockito-core'
+        testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
+        testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
+
+        implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+        implementation 'com.lmax:disruptor:3.4.4'
+        implementation 'com.google.guava:guava:31.1-jre'
+        implementation 'org.apache.commons:commons-collections4:4.4'
+        implementation 'org.apache.commons:commons-lang3:3.12.0'
+    }
+
+    test {
+        useJUnitPlatform()
+        defaultCharacterEncoding = "UTF-8"
+        jvmArgs('--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED')
+        jvmArgs('--add-opens', 'java.base/jdk.internal.misc=ALL-UNNAMED')
+        jvmArgs('--add-opens', 'java.base/jdk.internal.vm.annotation=ALL-UNNAMED')
+        jvmArgs('--add-opens', 'java.base/sun.net=ALL-UNNAMED')
+        jvmArgs('--add-opens', 'java.base/sun.net.util=ALL-UNNAMED')
+        jvmArgs('--add-opens', 'java.base/sun.net.www=ALL-UNNAMED')
+        jvmArgs('--add-opens', 'java.base/jdk.internal.ref=ALL-UNNAMED')
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    javadoc {
+        if(JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+        options.memberLevel = JavadocMemberLevel.PRIVATE
+        options.encoding = "UTF-8";
+        options.locale = "zh_CN";// 可以省略
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+
+
+}
+
+bootJar {
+    enabled = false
+}
+jar {
+    enabled = false
+}
+
+
+
+
+
+
