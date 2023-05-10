@@ -1,0 +1,47 @@
+
+dependencies {
+//    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+//    implementation 'org.springframework.data:spring-data-mongodb:4.0.2'
+//    implementation 'org.springframework.data:spring-data-jpa:3.0.2'
+//    implementation 'org.springframework.data:spring-data-elasticsearch:5.0.2'
+//    implementation 'org.springframework.data:spring-data-rest-webmvc:4.0.2'
+//    implementation 'org.springframework.data:spring-data-jdbc:3.0.2'
+//    implementation 'org.springframework.security:spring-security-oauth2-authorization-server:1.0.1'
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    implementation ('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation 'org.springframework:spring-context-indexer'
+
+    implementation ('org.springframework.boot:spring-boot-starter-data-redis') {
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+        exclude group: 'ch.qos.logback', module: 'logback-core'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation 'org.apache.commons:commons-pool2'
+
+
+    implementation 'org.springframework:spring-tx'
+    implementation ('com.github.docker-java:docker-java:3.3.0') {
+        exclude module: 'docker-java-transport-jersey'
+        exclude module: 'docker-java-transport-netty'
+    }
+    implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.0'
+
+    implementation ('org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2') {
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+        exclude group: 'ch.qos.logback', module: 'logback-core'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-jdbc'
+    }
+    implementation ('org.springframework.boot:spring-boot-starter-jdbc') {
+        exclude module: 'spring-boot-starter-logging'
+    }
+    implementation ('org.springframework.boot:spring-boot-starter-aop') {
+        exclude module: 'spring-boot-starter-logging'
+    }
+    implementation 'mysql:mysql-connector-java:8.0.32'
+    implementation 'org.postgresql:postgresql:42.5.4'
+}
