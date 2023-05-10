@@ -24,6 +24,5 @@ include 'alita-job:alita-xl-job'
 include 'alita-job:alita-xl-job:alita-xl-job-server'
 include 'alita-job:alita-xl-job:alita-xl-job-handler'
 include 'alita-event:disruptor-event'
-findProject(':alita-event:disruptor-event')?.name = 'disruptor-event'
 include 'alita-log'
 
